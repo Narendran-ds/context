@@ -37,6 +37,85 @@ Statekeeper replaces that single file with a small, purpose-built `.statekeeper/
 └── convo-N.md        # ...one per session
 ```
 
+## See it in action
+
+**Session 1** — you ask Claude to build something. No `.statekeeper/` folder exists yet, so Claude offers to create one, then works as usual.
+
+```
+You:    Add JWT-based login to the API
+
+Claude: [implements auth, writes tests, all green]
+
+Claude: Feature's done — updated state and logged today's session.
+```
+
+Behind the scenes, Claude rewrote `.statekeeper/STATE.md`:
+
+```markdown
+# Current State
+_Last updated: 2026-09-15_
+
+## In progress
+- Authentication — JWT login shipped and tested; OAuth not started
+
+## Blockers
+- None
+
+## Next steps
+1. Add Google OAuth as a second login method
+2. Add refresh-token rotation
+```
+
+and appended a line to `.statekeeper/COMPLETED.md`:
+
+```markdown
+## 2026-09-15
+- Implemented JWT-based login with tests
+```
+
+**Session 2** — new day, brand-new context window, no summary from you.
+
+```
+You:    let's keep going
+
+Claude: [reads .statekeeper/ before responding]
+
+Claude: Last session you shipped JWT-based login — tests passing,
+        committed. STATE.md has Google OAuth as the next step. Want
+        me to start there?
+```
+
+Nothing was re-explained. Claude reconstructed exactly where things stood from `STATE.md` and `COMPLETED.md` alone.
+
+## How the pieces fit together
+
+```
+                     Claude Code session
+                             │
+                             ▼
+                    reads .statekeeper/ first
+                             │
+      ┌───────────┬──────────────────┬───────────┬────────────┐
+      ▼           ▼                  ▼           ▼            │
+ PROJECT.md  REQUIREMENTS.md    ROADMAP.md    STATE.md         │
+ (stable)     (specs)           (phases,     (live status,     │
+                                 decisions)    next steps)      │
+      │           │                  │           │             │
+      └───────────┴────────┬─────────┴───────────┘             │
+                            ▼                                   │
+                     you keep working ──────────────────────────┘
+                            │
+              at a checkpoint (feature done, decision
+              made, wrapping up, or 90% context usage)
+                            ▼
+                     COMPLETED.md  ◄── append-only, newest on top
+                            │
+                            ▼
+                     convo-N.md   ◄── full transcript, one per session
+```
+
+`STATE.md` is the only file that gets overwritten every checkpoint — everything else changes rarely (`PROJECT.md`, `ROADMAP.md`, `REQUIREMENTS.md`) or only grows (`COMPLETED.md`, `convo-N.md`).
+
 ## Features
 
 - 🧠 **Read-before-work** — every session starts by reading the whole folder, not just skimming `CLAUDE.md`.
@@ -76,6 +155,12 @@ That's it — Claude picks it up automatically next session. No restart, no conf
 | Session transcripts | Not kept | Saved per session (`convo-N.md`) |
 | Staleness | Common — gets skipped once it's huge | Each file stays short and current |
 | Updates | Manual | Automatic, at natural checkpoints |
+
+## Limitations
+
+- **Prompt-driven, not enforced.** This is a Claude Code skill — Claude follows these instructions because they're in context, not because a hook or script forces the file writes. Nothing stops a session from skipping an update.
+- **90% context-usage detection is a heuristic.** Claude Code doesn't expose a precise numeric signal for context usage today, so the safety-dump trigger relies on approximation (status line, compaction warnings) rather than an exact threshold.
+- **`convo-N.md` grows unbounded.** Nothing prunes or summarizes old transcripts yet — long-running projects will accumulate them.
 
 ## Contributing
 
