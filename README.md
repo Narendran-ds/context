@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="logo.png" alt="Context logo" width="640">
+  <img src="logo.png" alt="Statekeeper logo" width="640">
 </p>
 
 <h3 align="center">Persistent project memory for Claude Code</h3>
 
 <p align="center">
-  Stop re-explaining your project every session. <code>Context</code> gives Claude a structured, self-updating memory —
+  Stop re-explaining your project every session. <code>Statekeeper</code> gives Claude a structured, self-updating memory —
   so it picks up exactly where the last session left off.
 </p>
 
@@ -21,12 +21,12 @@
 
 `CLAUDE.md` is one file trying to be everything — project overview, live status, decision log, and history, all mixed together. That either makes it huge and stale, or people stop maintaining it. Either way, every new session starts the same way: you re-explaining what the project is, what's already been decided, and what you were in the middle of.
 
-## What Context does
+## What Statekeeper does
 
-Context replaces that single file with a small, purpose-built `.claude-context/` folder that Claude reads in full at the start of every session and **keeps up to date automatically as you work** — no reminders needed.
+Statekeeper replaces that single file with a small, purpose-built `.statekeeper/` folder that Claude reads in full at the start of every session and **keeps up to date automatically as you work** — no reminders needed.
 
 ```
-.claude-context/
+.statekeeper/
 ├── PROJECT.md        # what it is, tech stack, architecture, conventions — rarely changes
 ├── REQUIREMENTS.md   # functional / non-functional requirements, acceptance criteria
 ├── ROADMAP.md        # phases/milestones, key decisions and why, deferred items
@@ -49,12 +49,12 @@ Context replaces that single file with a small, purpose-built `.claude-context/`
 
 **Claude Code — all projects (recommended):**
 ```bash
-git clone https://github.com/Narendran-ds/context.git ~/.claude/skills/context
+git clone https://github.com/Narendran-ds/statekeeper.git ~/.claude/skills/statekeeper
 ```
 
 **Claude Code — single project only:**
 ```bash
-git clone https://github.com/Narendran-ds/context.git .claude/skills/context
+git clone https://github.com/Narendran-ds/statekeeper.git .claude/skills/statekeeper
 ```
 
 That's it — Claude picks it up automatically next session. No restart, no config.
@@ -63,13 +63,13 @@ That's it — Claude picks it up automatically next session. No restart, no conf
 
 ## How it works
 
-1. **Session start** — Claude checks for `.claude-context/` in your project root. If it's missing, it offers to create one from templates. If it exists, Claude reads `PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`, and `COMPLETED.md` in full, plus the most recent `convo-N.md` files.
+1. **Session start** — Claude checks for `.statekeeper/` in your project root. If it's missing, it offers to create one from templates. If it exists, Claude reads `PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`, and `COMPLETED.md` in full, plus the most recent `convo-N.md` files.
 2. **While you work** — at natural checkpoints (a feature ships, a decision is made, requirements change, you say you're wrapping up), Claude rewrites `STATE.md`, appends to `COMPLETED.md`, and updates `ROADMAP.md`/`REQUIREMENTS.md`/`PROJECT.md` only when something actually changed.
 3. **Context running high** — the instant context usage hits ~90%, Claude immediately writes the full transcript to the next `convo-N.md`, updates `STATE.md`, and tells you it did so — a safety net against losing work to compaction.
 
 ## Why not just use CLAUDE.md?
 
-| | `CLAUDE.md` | Context |
+| | `CLAUDE.md` | Statekeeper |
 |---|---|---|
 | Structure | One growing file | Purpose-built files, each with one job |
 | Live status vs. history | Mixed together | Separated (`STATE.md` vs `COMPLETED.md`) |

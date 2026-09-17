@@ -1,14 +1,14 @@
 ---
-name: context
-description: Maintains richer, longer-lived project memory than a single CLAUDE.md by keeping a .claude-context/ folder of purpose-built files — PROJECT.md (overview/stack), REQUIREMENTS.md (specs), ROADMAP.md (phases/decisions), STATE.md (live status), COMPLETED.md (done-work log), and convo-N.md full-transcript files per session. Use at the START of any session — check for this folder (or offer to create one) and read every file before doing other work, so Claude resumes exactly where the project left off. IMPORTANT — watch context-window usage; the instant it hits 90% or more, immediately create the next convo-N.md and dump the full conversation transcript into it as a safety save, even mid-task, before continuing. Also update STATE.md, COMPLETED.md, convo-N.md at natural checkpoints (feature finished, decision made, user wrapping up) without being asked. Trigger on "where did we leave off", project-status requests, high context usage, or substantive multi-step project work needing cross-session memory.
+name: statekeeper
+description: Maintains richer, longer-lived project memory than a single CLAUDE.md by keeping a .statekeeper/ folder of purpose-built files — PROJECT.md (overview/stack), REQUIREMENTS.md (specs), ROADMAP.md (phases/decisions), STATE.md (live status), COMPLETED.md (done-work log), and convo-N.md full-transcript files per session. Use at the START of any session — check for this folder (or offer to create one) and read every file before doing other work, so Claude resumes exactly where the project left off. IMPORTANT — watch context-window usage; the instant it hits 90% or more, immediately create the next convo-N.md and dump the full conversation transcript into it as a safety save, even mid-task, before continuing. Also update STATE.md, COMPLETED.md, convo-N.md at natural checkpoints (feature finished, decision made, user wrapping up) without being asked. Trigger on "where did we leave off", project-status requests, high context usage, or substantive multi-step project work needing cross-session memory.
 ---
 
-# Project Context
+# Statekeeper
 
-A lightweight, file-based memory system for long-running projects. Instead of cramming everything into one CLAUDE.md (which either bloats past usefulness or gets ignored), this skill splits project memory into purpose-built files inside a single folder, `.claude-context/`, at the project root.
+A lightweight, file-based memory system for long-running projects. Instead of cramming everything into one CLAUDE.md (which either bloats past usefulness or gets ignored), this skill splits project memory into purpose-built files inside a single folder, `.statekeeper/`, at the project root.
 
 ```
-.claude-context/
+.statekeeper/
 ├── PROJECT.md        # what the project is, tech stack, architecture, conventions (rarely changes)
 ├── REQUIREMENTS.md   # functional/non-functional requirements, specs, acceptance criteria
 ├── ROADMAP.md        # phases/milestones, key decisions and why, deferred/out-of-scope items
@@ -21,12 +21,12 @@ A lightweight, file-based memory system for long-running projects. Instead of cr
 
 ## Core rule: read before you work
 
-At the very start of a session, **before** writing any code or answering the substantive request, check whether `.claude-context/` exists in the project root (or wherever the user says the project lives).
+At the very start of a session, **before** writing any code or answering the substantive request, check whether `.statekeeper/` exists in the project root (or wherever the user says the project lives).
 
 - **If it exists**: read `PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`, and `COMPLETED.md` in full — these are usually short. Skim the last 2-3 `convo-N.md` files (most recent sessions) rather than all of them, unless the project is small enough that reading everything is cheap. Use this to understand what the project actually is, what's already decided, what's in flight, and what's already done — don't re-litigate settled decisions or redo finished work.
 - **If it doesn't exist**: briefly tell the user you didn't find one, and offer to set it up (see "Initializing" below). Don't create it silently without mention the first time — after that, updates happen automatically without asking (see "Updating automatically").
 
-## Initializing a new .claude-context/ folder
+## Initializing a new .statekeeper/ folder
 
 When creating the folder for the first time, use the templates in `references/templates.md` for all of these. Fill in whatever the user has already told you; leave sections explicitly marked TBD rather than inventing content.
 
@@ -78,11 +78,11 @@ See `references/templates.md` for the exact starter templates and formatting con
 
 ## Where the folder lives
 
-Default to the project's root directory (same level as CLAUDE.md, package.json, etc., if those exist). If the user is working across multiple distinct projects in one environment, each gets its own `.claude-context/` at its own root — never share one folder across unrelated projects.
+Default to the project's root directory (same level as CLAUDE.md, package.json, etc., if those exist). If the user is working across multiple distinct projects in one environment, each gets its own `.statekeeper/` at its own root — never share one folder across unrelated projects.
 
 ## Claude.ai (chat, no filesystem persistence between sessions)
 
-This skill is built primarily for Claude Code, where `.claude-context/` is real files in the user's repo that persist naturally. In Claude.ai chat, there's no repo to write into by default:
+This skill is built primarily for Claude Code, where `.statekeeper/` is real files in the user's repo that persist naturally. In Claude.ai chat, there's no repo to write into by default:
 
 - If the user has a Project with file upload/knowledge, treat those uploaded files the same way — read them at the start, and produce updated versions of `STATE.md` / `COMPLETED.md` / a new `convo-N.md` as files/artifacts for the user to re-upload, since Claude can't write directly into their Project knowledge.
 - If there's no persistent storage at all, say so plainly: offer to generate the files as downloads instead of pretending they were saved somewhere durable.
