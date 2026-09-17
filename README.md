@@ -104,13 +104,13 @@ Nothing was re-explained. Claude reconstructed exactly where things stood from `
                              │
       ┌───────────┬──────────────────┬───────────┬────────────┐
       ▼           ▼                  ▼           ▼            │
- PROJECT.md  REQUIREMENTS.md    ROADMAP.md    STATE.md         │
- (stable)     (specs)           (phases,     (live status,     │
-                                 decisions)    next steps)      │
-      │           │                  │           │             │
-      └───────────┴────────┬─────────┴───────────┘             │
-                            ▼                                   │
-                     you keep working ──────────────────────────┘
+ PROJECT.md  REQUIREMENTS.md    ROADMAP.md    STATE.md        │
+ (stable)     (specs)           (phases,     (live status,    │
+                                 decisions)    next steps)    │
+      │           │                  │           │            │
+      └───────────┴────────┬─────────┴───────────┘            │
+                            ▼                                 │
+                     you keep working ────────────────────────┘
                             │
               at a checkpoint (feature verified, decision
               made, wrapping up, or context usage ~60-65%)
