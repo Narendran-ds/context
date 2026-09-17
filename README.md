@@ -1,12 +1,29 @@
-# project-context
+<p align="center">
+  <img src="logo.png" alt="Context logo" width="640">
+</p>
 
-Give Claude Code (or Claude in general) real, persistent project memory — without relying on a single, ever-growing `CLAUDE.md`.
+<h3 align="center">Persistent project memory for Claude Code</h3>
 
-Most people either don't use `CLAUDE.md` at all, or let it turn into a dumping ground that eventually gets too long to be useful. `project-context` instead keeps a small `.claude-context/` folder of purpose-built files that Claude reads at the start of every session and updates automatically as you work — so a new session (or a fresh instance of Claude) can pick up exactly where the last one left off.
+<p align="center">
+  Stop re-explaining your project every session. <code>Context</code> gives Claude a structured, self-updating memory —
+  so it picks up exactly where the last session left off.
+</p>
 
-## What it does
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/Claude%20Code-skill-6E56CF" alt="Claude Code skill">
+  <img src="https://img.shields.io/badge/Claude.ai-compatible-6E56CF" alt="Claude.ai compatible">
+</p>
 
-At the start of any session, Claude checks for a `.claude-context/` folder in your project (or offers to create one), reads it, and resumes with full context instead of asking you to re-explain everything. Then, **without being asked**, it keeps the files current as you work:
+---
+
+## The problem
+
+`CLAUDE.md` is one file trying to be everything — project overview, live status, decision log, and history, all mixed together. That either makes it huge and stale, or people stop maintaining it. Either way, every new session starts the same way: you re-explaining what the project is, what's already been decided, and what you were in the middle of.
+
+## What Context does
+
+Context replaces that single file with a small, purpose-built `.claude-context/` folder that Claude reads in full at the start of every session and **keeps up to date automatically as you work** — no reminders needed.
 
 ```
 .claude-context/
@@ -20,30 +37,45 @@ At the start of any session, Claude checks for a `.claude-context/` folder in yo
 └── convo-N.md        # ...one per session
 ```
 
-**Key behaviors:**
-- **Read-before-work** — every session starts by reading the whole folder, not just `CLAUDE.md`.
-- **Automatic checkpoints** — `STATE.md` and `COMPLETED.md` get updated at natural pause points (a feature finished, a real decision made, you wrapping up) without you having to ask.
-- **90% context-usage safety net** — if Claude's context window usage climbs to 90% or more, it immediately dumps the *full conversation transcript* into the next `convo-N.md` before continuing, so nothing gets lost to compaction or truncation mid-session.
+## Features
 
-## Installation
+- 🧠 **Read-before-work** — every session starts by reading the whole folder, not just skimming `CLAUDE.md`.
+- ✅ **Automatic checkpoints** — `STATE.md` and `COMPLETED.md` update at natural pause points (a feature finished, a real decision made, you wrapping up) without you having to ask.
+- 🛟 **90% context-usage safety net** — if context usage climbs to 90% or more, Claude immediately dumps the *full conversation transcript* into the next `convo-N.md` before continuing, so nothing is lost to compaction or truncation mid-session.
+- 📁 **One folder per project** — no shared state, no bleed between unrelated projects.
+- 🪶 **Lightweight** — plain Markdown files, no database, no external services.
 
-**Claude Code — personal skills (all projects):**
+## Install
+
+**Claude Code — all projects (recommended):**
 ```bash
-git clone https://github.com/<your-username>/project-context ~/.claude/skills/project-context
+git clone https://github.com/Narendran-ds/context.git ~/.claude/skills/project-context
 ```
 
 **Claude Code — single project only:**
 ```bash
-git clone https://github.com/<your-username>/project-context .claude/skills/project-context
+git clone https://github.com/Narendran-ds/context.git .claude/skills/project-context
 ```
 
-Claude will pick it up automatically next session — no restart or extra config needed.
+That's it — Claude picks it up automatically next session. No restart, no config.
 
-**Claude.ai (chat):** upload `SKILL.md` and `references/templates.md` wherever your Claude.ai skill upload flow expects them, or package as a `.skill` file. Note this skill was built primarily for Claude Code; in Claude.ai chat there's no repo filesystem, so it falls back to producing files/artifacts you re-upload instead of writing them directly.
+**Claude.ai (chat):** upload `SKILL.md` and `references/templates.md` through your Claude.ai skill upload flow, or package them as a `.skill` file. This skill is built primarily for Claude Code; in Claude.ai chat there's no repo filesystem, so it falls back to producing files/artifacts you re-upload instead of writing them directly.
+
+## How it works
+
+1. **Session start** — Claude checks for `.claude-context/` in your project root. If it's missing, it offers to create one from templates. If it exists, Claude reads `PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`, and `COMPLETED.md` in full, plus the most recent `convo-N.md` files.
+2. **While you work** — at natural checkpoints (a feature ships, a decision is made, requirements change, you say you're wrapping up), Claude rewrites `STATE.md`, appends to `COMPLETED.md`, and updates `ROADMAP.md`/`REQUIREMENTS.md`/`PROJECT.md` only when something actually changed.
+3. **Context running high** — the instant context usage hits ~90%, Claude immediately writes the full transcript to the next `convo-N.md`, updates `STATE.md`, and tells you it did so — a safety net against losing work to compaction.
 
 ## Why not just use CLAUDE.md?
 
-`CLAUDE.md` is one file trying to be everything: static overview, live status, decision log, and history, all mixed together. That either makes it huge and stale, or people skip it. Splitting those concerns into separate files means each one stays short, current, and skimmable — Claude reads the whole set in seconds instead of parsing one bloated file.
+| | `CLAUDE.md` | Context |
+|---|---|---|
+| Structure | One growing file | Purpose-built files, each with one job |
+| Live status vs. history | Mixed together | Separated (`STATE.md` vs `COMPLETED.md`) |
+| Session transcripts | Not kept | Saved per session (`convo-N.md`) |
+| Staleness | Common — gets skipped once it's huge | Each file stays short and current |
+| Updates | Manual | Automatic, at natural checkpoints |
 
 ## Contributing
 
