@@ -1,5 +1,5 @@
 ---
-name: project-context
+name: context
 description: Maintains richer, longer-lived project memory than a single CLAUDE.md by keeping a .claude-context/ folder of purpose-built files — PROJECT.md (overview/stack), REQUIREMENTS.md (specs), ROADMAP.md (phases/decisions), STATE.md (live status), COMPLETED.md (done-work log), and convo-N.md full-transcript files per session. Use at the START of any session — check for this folder (or offer to create one) and read every file before doing other work, so Claude resumes exactly where the project left off. IMPORTANT — watch context-window usage; the instant it hits 90% or more, immediately create the next convo-N.md and dump the full conversation transcript into it as a safety save, even mid-task, before continuing. Also update STATE.md, COMPLETED.md, convo-N.md at natural checkpoints (feature finished, decision made, user wrapping up) without being asked. Trigger on "where did we leave off", project-status requests, high context usage, or substantive multi-step project work needing cross-session memory.
 ---
 

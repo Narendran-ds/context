@@ -49,12 +49,12 @@ Context replaces that single file with a small, purpose-built `.claude-context/`
 
 **Claude Code — all projects (recommended):**
 ```bash
-git clone https://github.com/Narendran-ds/context.git ~/.claude/skills/project-context
+git clone https://github.com/Narendran-ds/context.git ~/.claude/skills/context
 ```
 
 **Claude Code — single project only:**
 ```bash
-git clone https://github.com/Narendran-ds/context.git .claude/skills/project-context
+git clone https://github.com/Narendran-ds/context.git .claude/skills/context
 ```
 
 That's it — Claude picks it up automatically next session. No restart, no config.
