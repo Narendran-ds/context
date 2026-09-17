@@ -30,12 +30,14 @@ Statekeeper replaces that single file with a small, purpose-built `.statekeeper/
 ├── PROJECT.md        # what it is, tech stack, architecture, conventions — rarely changes
 ├── REQUIREMENTS.md   # functional / non-functional requirements, acceptance criteria
 ├── ROADMAP.md        # phases/milestones, key decisions and why, deferred items
-├── STATE.md          # LIVE status: what's in progress, blockers, next steps
-├── COMPLETED.md      # append-only log of finished work, newest first
-├── convo-1.md        # full transcript of session 1
-├── convo-2.md        # full transcript of session 2
-└── convo-N.md        # ...one per session
+├── STATE.md          # LIVE status: in progress, not-yet-verified work, blockers, next steps
+├── COMPLETED.md      # append-only log of *verified* finished work, newest first
+├── convo-1.md        # transcript of session 1, appended incrementally as it happens
+├── convo-2.md        # transcript of session 2
+└── convo-N.md        # ...one per session, flushed early if context usage climbs
 ```
+
+If a `.planning/` folder from another planning tool (e.g. GSD) already exists, Statekeeper skips creating `PROJECT.md`/`REQUIREMENTS.md`/`ROADMAP.md` and only owns `STATE.md`, `COMPLETED.md`, and `convo-N.md` — see [Coexisting with other planning tools](#coexisting-with-other-planning-tools-eg-gsd).
 
 ## See it in action
 
@@ -44,9 +46,9 @@ Statekeeper replaces that single file with a small, purpose-built `.statekeeper/
 ```
 You:    Add JWT-based login to the API
 
-Claude: [implements auth, writes tests, all green]
+Claude: [implements auth, writes tests, runs them — all pass]
 
-Claude: Feature's done — updated state and logged today's session.
+Claude: Feature's done and verified — updated state and logged today's session.
 ```
 
 Behind the scenes, Claude rewrote `.statekeeper/STATE.md`:
@@ -56,7 +58,10 @@ Behind the scenes, Claude rewrote `.statekeeper/STATE.md`:
 _Last updated: 2026-09-15_
 
 ## In progress
-- Authentication — JWT login shipped and tested; OAuth not started
+- Authentication — JWT login shipped and verified; OAuth not started
+
+## Implemented but not yet verified
+- (none — JWT login's test suite ran and passed before this was logged)
 
 ## Blockers
 - None
@@ -66,12 +71,14 @@ _Last updated: 2026-09-15_
 2. Add refresh-token rotation
 ```
 
-and appended a line to `.statekeeper/COMPLETED.md`:
+and appended a line to `.statekeeper/COMPLETED.md` — note it names *how* it was verified, not just what was written:
 
 ```markdown
 ## 2026-09-15
-- Implemented JWT-based login with tests
+- Implemented JWT-based login — verified: test suite run, 14/14 passing
 ```
+
+If the tests hadn't been run yet, that line would stay in `STATE.md`'s "Implemented but not yet verified" list instead — it doesn't get to `COMPLETED.md` until something actually confirms it works. That distinction is deliberate: a log of only successes can't be trusted to tell you what's actually safe to build on.
 
 **Session 2** — new day, brand-new context window, no summary from you.
 
@@ -105,22 +112,29 @@ Nothing was re-explained. Claude reconstructed exactly where things stood from `
                             ▼                                   │
                      you keep working ──────────────────────────┘
                             │
-              at a checkpoint (feature done, decision
-              made, wrapping up, or 90% context usage)
+              at a checkpoint (feature verified, decision
+              made, wrapping up, or context usage ~60-65%)
                             ▼
-                     COMPLETED.md  ◄── append-only, newest on top
+                 was it actually verified? ── no ──▶ stays in
+                            │                        STATE.md
+                           yes
+                            ▼
+                     COMPLETED.md  ◄── append-only, verified work only
                             │
                             ▼
-                     convo-N.md   ◄── full transcript, one per session
+                     convo-N.md   ◄── transcript, appended incrementally
+                                      through the session (not written
+                                      once at the end)
 ```
 
-`STATE.md` is the only file that gets overwritten every checkpoint — everything else changes rarely (`PROJECT.md`, `ROADMAP.md`, `REQUIREMENTS.md`) or only grows (`COMPLETED.md`, `convo-N.md`).
+`STATE.md` is the only file that gets overwritten every checkpoint — everything else changes rarely (`PROJECT.md`, `ROADMAP.md`, `REQUIREMENTS.md`) or only grows (`COMPLETED.md`, `convo-N.md`). The verification gate before `COMPLETED.md` is the one non-negotiable step — work that's implemented but unconfirmed never gets logged as done.
 
 ## Features
 
 - 🧠 **Read-before-work** — every session starts by reading the whole folder, not just skimming `CLAUDE.md`.
-- ✅ **Automatic checkpoints** — `STATE.md` and `COMPLETED.md` update at natural pause points (a feature finished, a real decision made, you wrapping up) without you having to ask.
-- 🛟 **90% context-usage safety net** — if context usage climbs to 90% or more, Claude immediately dumps the *full conversation transcript* into the next `convo-N.md` before continuing, so nothing is lost to compaction or truncation mid-session.
+- ✅ **Automatic checkpoints** — `STATE.md` and `COMPLETED.md` update at natural pause points (a feature verified, a real decision made, you wrapping up) without you having to ask.
+- 🔍 **Verified work only in `COMPLETED.md`** — "implemented" and "verified" are tracked as different claims. Nothing is logged as done until its test/command/check actually ran and passed; unconfirmed work stays in `STATE.md` instead.
+- 🛟 **Early, incremental context-usage safety net** — `convo-N.md` is appended to continuously through the session, not written once at the end. If context usage climbs to ~60-65%, Claude flushes it immediately — early enough to still have room to write a good handoff, unlike waiting for 90%.
 - 📁 **One folder per project** — no shared state, no bleed between unrelated projects.
 - 🪶 **Lightweight** — plain Markdown files, no database, no external services.
 
@@ -142,9 +156,18 @@ That's it — Claude picks it up automatically next session. No restart, no conf
 
 ## How it works
 
-1. **Session start** — Claude checks for `.statekeeper/` in your project root. If it's missing, it offers to create one from templates. If it exists, Claude reads `PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`, and `COMPLETED.md` in full, plus the most recent `convo-N.md` files.
-2. **While you work** — at natural checkpoints (a feature ships, a decision is made, requirements change, you say you're wrapping up), Claude rewrites `STATE.md`, appends to `COMPLETED.md`, and updates `ROADMAP.md`/`REQUIREMENTS.md`/`PROJECT.md` only when something actually changed.
-3. **Context running high** — the instant context usage hits ~90%, Claude immediately writes the full transcript to the next `convo-N.md`, updates `STATE.md`, and tells you it did so — a safety net against losing work to compaction.
+1. **Session start** — Claude checks for `.statekeeper/` in your project root. If it's missing, it offers to create one from templates (see [coexistence](#coexisting-with-other-planning-tools-eg-gsd) if a tool like GSD is already present). If it exists, Claude reads `PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`, and `COMPLETED.md` in full, plus the most recent `convo-N.md` files.
+2. **While you work** — `convo-N.md` gets appended to continuously, not saved up for one write later. At natural checkpoints (a feature ships *and is verified*, a decision is made, requirements change, you say you're wrapping up), Claude rewrites `STATE.md`, appends to `COMPLETED.md` only for verified work, and updates `ROADMAP.md`/`REQUIREMENTS.md`/`PROJECT.md` only when something actually changed.
+3. **Context running high** — the instant context usage hits ~60-65%, Claude flushes `convo-N.md` (a small catch-up append, since it's been logging incrementally) and updates `STATE.md` — early enough to still have room to write a good handoff, rather than waiting until there's none left.
+
+## Coexisting with other planning tools (e.g. GSD)
+
+`PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, and `STATE.md` aren't unique names — planning tools like GSD write the same four filenames into their own `.planning/` folder. There's no literal path collision (`.statekeeper/` and `.planning/` are different directories), but two authoritative "current roadmaps" in one project is worse than one, since nothing says which one to trust.
+
+Statekeeper checks for `.planning/` (or another existing planning-tool folder) before initializing:
+
+- **If one exists**, Statekeeper doesn't duplicate `PROJECT.md`, `REQUIREMENTS.md`, or `ROADMAP.md` — it treats the other tool's copies as authoritative and reads them at session start. It scopes itself down to what the other tool doesn't provide: `STATE.md` (live status), `COMPLETED.md` (verified-work log), and `convo-N.md` (transcripts).
+- **If none exists**, it initializes the full set as usual.
 
 ## Why not just use CLAUDE.md?
 
@@ -158,13 +181,13 @@ That's it — Claude picks it up automatically next session. No restart, no conf
 
 ## Limitations
 
-- **Prompt-driven, not enforced.** This is a Claude Code skill — Claude follows these instructions because they're in context, not because a hook or script forces the file writes. Nothing stops a session from skipping an update.
-- **90% context-usage detection is a heuristic.** Claude Code doesn't expose a precise numeric signal for context usage today, so the safety-dump trigger relies on approximation (status line, compaction warnings) rather than an exact threshold.
-- **`convo-N.md` grows unbounded.** Nothing prunes or summarizes old transcripts yet — long-running projects will accumulate them.
+- **Prompt-driven, not enforced.** This is a Claude Code skill — Claude follows these instructions because they're in context, not because a hook or script forces the file writes or the verification gate. Nothing stops a session from skipping an update or, worse, logging something to `COMPLETED.md` without actually verifying it.
+- **Context-usage detection is a heuristic.** Claude Code doesn't expose a precise numeric signal for context usage today, so the ~60-65% flush trigger relies on approximation (status line, compaction warnings) rather than an exact threshold. It's set well below where problems actually start (context can run out faster than expected) specifically to leave margin for that imprecision.
+- **`convo-N.md` still grows over time.** Filtering out injected system/skill boilerplate keeps individual files smaller, but nothing prunes or summarizes *old* transcripts across sessions — long-running projects will accumulate many of them.
 
 ## Contributing
 
-Issues and PRs welcome — especially around edge cases in the 90%-context-threshold detection, since Claude Code doesn't expose a precise numeric signal for that today.
+Issues and PRs welcome — especially around edge cases in context-usage detection (Claude Code doesn't expose a precise numeric signal today) and around what counts as "verified" for less clear-cut cases than a test suite (e.g. manual QA, visual review).
 
 ## License
 
